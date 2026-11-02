@@ -15,7 +15,7 @@ const timeText = computed(() => {
   return `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`
 })
 const phaseText = computed(() => props.snapshot.result ? '本局结束' : ({ ready: '准备开局', running: '对局进行中', paused: '已暂停' }[props.snapshot.phase]))
-const lastPassed = computed(() => props.snapshot.action.kind === 'move' ? props.snapshot.history.at(-1)?.passed : null)
+const lastPassed = computed(() => props.snapshot.action.kind === 'move' ? props.snapshot.history[props.snapshot.history.length - 1]?.passed : null)
 const networkText = computed(() => ({ offline: '未联机', hosting: '等待对手加入', connecting: '正在连接', connected: '已连接', disconnected: '连接已断开' }[props.snapshot.network.status]))
 const readyEnabled = computed(() => isLan.value && props.snapshot.network.status === 'connected' && props.snapshot.phase === 'ready' && !props.snapshot.result && !props.snapshot.pendingRequest && !props.busy)
 function playerName(color: Color) {
@@ -34,7 +34,7 @@ function playerDetail(color: Color) {
   }
   return color === 'black' ? '执黑先行' : '执白后手'
 }
-watch(() => `${props.snapshot.sessionId}:${props.snapshot.gameId}:${props.snapshot.history.length}:${props.snapshot.history.at(-1)?.coordinate ?? ''}`, async () => {
+watch(() => `${props.snapshot.sessionId}:${props.snapshot.gameId}:${props.snapshot.history.length}:${props.snapshot.history[props.snapshot.history.length - 1]?.coordinate ?? ''}`, async () => {
   await nextTick()
   if (historyList.value) historyList.value.scrollTop = historyList.value.scrollHeight
 }, { immediate: true })

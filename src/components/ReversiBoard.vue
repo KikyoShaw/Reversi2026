@@ -22,7 +22,7 @@ const preview = computed(() => {
   return null
 })
 const previewFlips = computed(() => new Set(preview.value?.flips ?? []))
-const lastMove = computed(() => props.snapshot.history.at(-1)?.index ?? null)
+const lastMove = computed(() => props.snapshot.history[props.snapshot.history.length - 1]?.index ?? null)
 const coordinate = (index: number) => `${letters[index % 8]}${Math.floor(index / 8) + 1}`
 const colorName = (color: Color) => color === 'black' ? '黑棋' : '白棋'
 
