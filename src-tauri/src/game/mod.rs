@@ -58,16 +58,6 @@ impl Position {
         }
         (black, white)
     }
-
-    /// Automatically skips an opponent with no move. If neither side can move,
-    /// `passed` is `None` and `turn` remains the opponent of the last mover.
-    pub fn after_move(
-        &self,
-        index: usize,
-    ) -> Result<(Position, Vec<usize>, Option<Color>), String> {
-        let applied = advance(self, index)?;
-        Ok((applied.position, applied.flips, applied.passed))
-    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -115,20 +105,6 @@ impl Game {
             result: None,
             before: Vec::new(),
         }
-    }
-
-    pub fn from_position(mut position: Position) -> Result<Self, String> {
-        validate_position(&position)?;
-        let result = match classify_turn(&mut position) {
-            TurnState::Ongoing { .. } => None,
-            TurnState::Finished => Some(no_moves_result(&position)),
-        };
-        Ok(Self {
-            position,
-            history: Vec::new(),
-            result,
-            before: Vec::new(),
-        })
     }
 
     pub fn apply_move(&mut self, index: usize) -> Result<(), String> {
