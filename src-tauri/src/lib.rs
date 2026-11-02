@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use tauri::{Manager, State};
+use tauri_plugin_opener::OpenerExt;
 
 mod game;
 mod network;
@@ -53,9 +54,17 @@ fn respond_request(hub: State<'_, Arc<Hub>>, id: u64, accept: bool, revision: u6
     hub.respond(id, accept, revision, session_id, game_id, turn_token)
 }
 
+#[tauri::command]
+fn open_repository(app: tauri::AppHandle) -> Result<(), String> {
+    app.opener()
+        .open_url("https://github.com/KikyoShaw/Reversi2026", None::<&str>)
+        .map_err(|error| format!("无法打开项目仓库：{error}"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let hub = Hub::new(app.handle().clone(), app.path().app_config_dir()?);
             app.manage(hub.clone());
@@ -65,7 +74,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_snapshot, new_game, update_preferences, game_action, get_hint,
-            host_lan, join_lan, leave_lan, respond_request,
+            host_lan, join_lan, leave_lan, respond_request, open_repository,
         ])
         .build(tauri::generate_context!())
         .expect("无法启动黑白棋")

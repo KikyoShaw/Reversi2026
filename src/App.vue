@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, provide, ref, shallowRef, watch } from 'vue'
+import { invoke } from '@tauri-apps/api/core'
 import AppDialog from './components/AppDialog.vue'
 import AppIcon from './components/AppIcon.vue'
 import ReversiBoard from './components/ReversiBoard.vue'
@@ -16,6 +17,18 @@ useSound(snapshot)
 provide('game-error', error)
 type Dialog = 'settings' | 'network' | 'rules' | 'result' | 'request' | 'confirm' | null
 const dialog = ref<Dialog>(null)
+const openingRepository = ref(false)
+async function openRepository() {
+  if (openingRepository.value) return
+  openingRepository.value = true
+  try {
+    await invoke('open_repository')
+  } catch (cause) {
+    error.value = `无法打开项目仓库：${cause instanceof Error ? cause.message : String(cause)}`
+  } finally {
+    openingRepository.value = false
+  }
+}
 const confirmation = shallowRef<{ title: string; body: string; label: string; danger?: boolean; back: Dialog; run: () => Promise<boolean> } | null>(null)
 const isLan = computed(() => snapshot.value?.settings.mode === 'lan')
 const pending = computed(() => snapshot.value?.pendingRequest)
@@ -159,6 +172,7 @@ watch(() => pending.value ? `${snapshot.value?.sessionId}:${pending.value.id}` :
         <button type="button" class="button button-quiet" :disabled="!snapshot" @click="dialog = 'settings'"><AppIcon name="settings" />设置</button>
         <button type="button" class="button button-quiet" :class="{ 'network-active': isLan }" :disabled="!snapshot" @click="dialog = 'network'"><AppIcon name="network" />联机</button>
         <button type="button" class="icon-button" :disabled="!snapshot || working" :aria-label="snapshot?.settings.sound ? '关闭音效' : '开启音效'" :title="snapshot?.settings.sound ? '关闭音效' : '开启音效'" :aria-pressed="!!snapshot?.settings.sound" @click="toggleSound"><AppIcon :name="snapshot?.settings.sound ? 'sound' : 'mute'" /></button>
+        <button type="button" class="button button-quiet" :disabled="openingRepository" aria-label="使用默认浏览器打开 GitHub 项目仓库" title="使用默认浏览器打开 GitHub 项目仓库" @click="openRepository"><AppIcon name="github" :size="18" />GitHub</button>
         <button type="button" class="icon-button" aria-label="游戏规则" title="游戏规则" @click="dialog = 'rules'"><AppIcon name="help" /></button>
       </nav>
     </header>
